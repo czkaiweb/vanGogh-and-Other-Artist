@@ -232,7 +232,7 @@ class genericCNN():
                 if tuple(inputs.shape) != size:
                     reLoadFlag = True
                     print(data["hash"],inputs.shape)
-                    self.testDF = self.tesstDF.drop(self.testDF[self.testDF["hash"]==data["hash"]].index)  
+                    self.testDF = self.testDF.drop(self.testDF[self.testDF["hash"]==data["hash"]].index)  
 
         self.datasetChecked = True
         if reLoadFlag:
