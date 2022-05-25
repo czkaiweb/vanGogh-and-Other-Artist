@@ -17,21 +17,29 @@ class genericCNN():
         self.metaDF = None
         self.trainDF = None
         self.valDF = None
+        self.datasetChecked = False
         self.artistMap = {}
 
-
+        self.UseNormalized = True
+        self.StatGot = False
         self.trainTransform = None
         self.valTransform = None
+        self.trainMean = None
+        self.trainStd = None
+
         self.NetWork = None
         self.Model = None
         self.ModelTag = None
 
         self.Dataset = None
         self.valSize = 0.2
+        self.testSize = 0.1
         self.trainDataset = None
         self.valDataset = None
+        self.testDataset = None
         self.trainDataLoader = None
         self.valDataLoader = None
+        self.testDataLoader = None
         self.datasetSize = {}
 
         self.batch_size = 5
@@ -47,8 +55,6 @@ class genericCNN():
             self.valDataset = CustomizedDataset(self.valDF, self.dataPath, transform=self.valTransform)
             self.trainDataLoader = DataLoader(self.trainDataset, batch_size=self.batch_size)
             self.valDataLoader = DataLoader(self.valDataset, batch_size=self.batch_size)
-
-
     
     def setBatchSize(batch_size = 5):
         self.batch_size = batch_size
@@ -57,6 +63,7 @@ class genericCNN():
             self.valDataLoader = DataLoader(self.valDataset, batch_size=self.batch_size)
     
     def setDataset(self, metadata, path="../data/imgs"):
+        self.datasetChecked = False
         self.metaData = metadata
         if ".csv" in metadata:
             try:
@@ -73,35 +80,87 @@ class genericCNN():
 
         self.metaDF["Artist"].replace(uniqueArtist, artistCode, inplace=True)
         
-    def splitData(self, val_size = 0.2, shuffle = True, random_seed = 42, fraction = 1):
+    def splitData(self, val_size = 0.2, test_size = 0.1, shuffle = True, random_seed = 42, fraction = 1):
+        self.StatGot = False
         self.valSize = val_size
+        self.testSize = test_size
         dataset_size = len(self.metaDF)
         indices = list(range(dataset_size))
-        split = int(np.floor(self.valSize * dataset_size))
+        split_test = int(np.floor(self.testSize * dataset_size))
+        split_val = int(np.floor(self.valSize * dataset_size))
+
         if shuffle :
             np.random.seed(random_seed)
             np.random.shuffle(indices)
-        train_indices, val_indices = indices[split:], indices[:split]
+        train_indices, val_indices, test_indices = indices[split_test+split_val:], indices[split_test:split_test+split_val],indices[:split_test]
         self.trainDF = self.metaDF.iloc[train_indices[:int(len(train_indices)*fraction)]]
         self.valDF = self.metaDF.iloc[val_indices[:int(len(val_indices)*fraction)]]
+        self.testDF = self.metaDF.iloc[test_indices[:int(len(test_indices)*fraction)]]
+
+    def getStat(self):
+        # Get the statistic for train set:
+        channels_sum, channels_squared_sum, num_batches = 0, 0, 0
+        if self.trainDataset == None:
+            print("There is no training set")
+            self.trainMean = None
+            self.trainStd = None
+
+        for data in self.trainDataLoader:
+            # Mean over batch, height and width, but not over the channels
+            channels_sum += torch.mean(data["image"], dim=[0,2,3])
+            channels_squared_sum += torch.mean(data["image"]**2, dim=[0,2,3])
+            num_batches += 1
+    
+        self.trainMean = channels_sum / num_batches
+        # std = sqrt(E[X^2] - (E[X])^2)
+        self.trainStd = (channels_squared_sum / num_batches - self.trainMean ** 2) ** 0.5
+        self.StatGot = True
+
+    def UseNormalizedTransformer(self, normalize = True):
+        self.UseNormalized = normalize
+
+        if type(self.trainDF) != type(None):
+            self.loadData()
 
     def loadData(self):
+        if self.UseNormalized == True and self.trainMean != None and self.trainStd != None:
+            if type(self.trainTransform.transforms[-1]) != transforms.Normalize:
+                self.trainTransform.transforms.append(transforms.Normalize(mean = self.trainMean, std=self.trainStd ))
+                self.valTransform.transforms.append(transforms.Normalize(mean = self.trainMean, std=self.trainStd ))
+            else:
+                self.trainTransform.transforms[-1] = transforms.Normalize(mean = self.trainMean, std=self.trainStd)
+                self.valTransform.transforms[-1] = transforms.Normalize(mean = self.trainMean, std=self.trainStd)
+        elif self.UseNormalized == False:
+            while type(self.trainTransform.transforms[-1]) == transforms.Normalize:
+                self.trainTransform.transforms = self.trainTransform.transforms[:-1]
+                self.valTransform.transform = self.valTransform.transforms[:-1]
+
+
         if type(self.trainDF) != type(None):
             self.trainDataset = CustomizedDataset(self.trainDF, self.dataPath, transform=self.trainTransform)
             self.valDataset = CustomizedDataset(self.valDF, self.dataPath, transform=self.valTransform)
+            self.testDataset = CustomizedDataset(self.testDF, self.dataPath, transform= self.valTransform)
 
             #self.trainSampler = SubsetRandomSampler(train_indices)
             #self.valSampler = SubsetRandomSampler(val_indices)
             self.datasetSize["train"] = len(self.trainDF)
             self.datasetSize["val"] = len(self.valDF)
+            self.datasetSize["test"] = len(self.testDF)
         
             self.trainDataLoader = DataLoader(self.trainDataset, batch_size=self.batch_size)
             self.valDataLoader = DataLoader(self.valDataset, batch_size=self.batch_size)
+
         elif type(self.metaDF) != type(None):
             print("No data split assigned, only train dataset will be used")
             self.trainDataset = CustomizedDataset(self.metaDF, self.dataPath, transform=self.trainTransform)
         else:
             print("No data found")
+
+        if self.StatGot == False:
+            self.getStat()
+        
+        if self.datasetChecked == False:
+            self.checkDataset()
 
     def showDatasetBatch(self, tag = "train" ):
         if tag == "train":
@@ -146,6 +205,7 @@ class genericCNN():
 
     def checkDataset(self,size = (3,224,224)):
         reLoadFlag = False
+        
         for index, data in enumerate(self.trainDataset):
                 inputs = data["image"]
                 labels = data["artist"]
@@ -161,8 +221,10 @@ class genericCNN():
                     reLoadFlag = True
                     print(data["hash"],inputs.shape)
                     self.valDF = self.valDF.drop(self.valDF[self.valDF["hash"]==data["hash"]].index)
+        self.datasetChecked = True
         if reLoadFlag:
             self.loadData()
+
 
     def train_model(self, criterion, optimizer, scheduler, num_epochs=25):
         since = time.time()
