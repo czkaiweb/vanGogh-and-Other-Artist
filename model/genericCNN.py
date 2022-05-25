@@ -329,8 +329,8 @@ class genericCNN():
                 labels = data["artist"].to(self.device)
                 outputs = self.Model(inputs)
                 _, preds = torch.max(outputs, 1)
-                y_pred.extend(outputs)
-                y_true.extend(labels)
+                y_pred.extend(preds.tolist())
+                y_true.extend(labels.tolist())
 
         artistList = [self.artistMap[i] for i in range(6)]
 
