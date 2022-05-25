@@ -3,6 +3,7 @@ from preprocessing.CustomizedDataset import *
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import transforms, utils
+
 import matplotlib.pyplot as plt
 import torch
 import time
@@ -10,6 +11,8 @@ import copy
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+from sklearn.metrics import confusion_matrix,accuracy_score
+import seaborn as sns
 
 class genericCNN():
     def __init__(self):
@@ -149,6 +152,7 @@ class genericCNN():
         
             self.trainDataLoader = DataLoader(self.trainDataset, batch_size=self.batch_size)
             self.valDataLoader = DataLoader(self.valDataset, batch_size=self.batch_size)
+            self.testDataLoader = DataLoader(self.testDataset, batch_size=self.batch_size)
 
         elif type(self.metaDF) != type(None):
             print("No data split assigned, only train dataset will be used")
@@ -228,7 +232,7 @@ class genericCNN():
                 if tuple(inputs.shape) != size:
                     reLoadFlag = True
                     print(data["hash"],inputs.shape)
-                    self.valDF = self.valDF.drop(self.valDF[self.valDF["hash"]==data["hash"]].index)  
+                    self.testDF = self.tesstDF.drop(self.testDF[self.testDF["hash"]==data["hash"]].index)  
 
         self.datasetChecked = True
         if reLoadFlag:
@@ -311,8 +315,35 @@ class genericCNN():
         return self.Model
 
 
-    def evaluate(self):
-        pass
+    def evaluate(self, saveAs = None):
+        y_pred = []
+        y_true = []
+
+
+        nAccu = 0
+        nTotal = 0
+        with torch.no_grad():
+            self.Model.eval()
+            for index, data in enumerate(self.testDataLoader):
+                inputs = data["image"].to(self.device)
+                labels = data["artist"].to(self.device)
+                outputs = self.Model(inputs)
+                _, preds = torch.max(outputs, 1)
+                y_pred.extend(outputs)
+                y_true.extend(labels)
+
+        artistList = [self.artistMap[i] for i in range(6)]
+
+        cfMatrix = confusion_matrix(y_true, y_pred, normalize = 'true')
+        dfcfMatrix = pd.DataFrame(cfMatrix, index=artistList,
+                         columns=artistList)
+        plt.figure(figsize=(12, 7))    
+        sns.heatmap(dfcfMatrix, annot=True).get_figure()
+        if saveAs:
+            try:
+                plt.savefig(saveAs)
+            except Exception as err:
+                print("Failed to save the evaluation file")  
 
 if __name__ == "__main__":
     myObj = genericCNN()
