@@ -125,11 +125,11 @@ class genericCNN():
     def loadData(self):
         if self.UseNormalized == True and self.trainMean != None and self.trainStd != None:
             if type(self.trainTransform.transforms[-1]) != transforms.Normalize:
-                self.trainTransform.transforms.append(transforms.Normalize(mean = self.trainMean, std=self.trainStd ))
-                self.valTransform.transforms.append(transforms.Normalize(mean = self.trainMean, std=self.trainStd ))
+                self.trainTransform.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
+                self.valTransform.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
             else:
-                self.trainTransform.transforms[-1] = transforms.Normalize(mean = self.trainMean, std=self.trainStd)
-                self.valTransform.transforms[-1] = transforms.Normalize(mean = self.trainMean, std=self.trainStd)
+                self.trainTransform.transforms[-1] = transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist()) )
+                self.valTransform.transforms[-1] = transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist()) )
         elif self.UseNormalized == False:
             while type(self.trainTransform.transforms[-1]) == transforms.Normalize:
                 self.trainTransform.transforms = self.trainTransform.transforms[:-1]
@@ -155,12 +155,12 @@ class genericCNN():
             self.trainDataset = CustomizedDataset(self.metaDF, self.dataPath, transform=self.trainTransform)
         else:
             print("No data found")
-
-        if self.StatGot == False:
-            self.getStat()
         
         if self.datasetChecked == False:
             self.checkDataset()
+
+        if self.StatGot == False:
+            self.getStat()
 
     def showDatasetBatch(self, tag = "train" ):
         if tag == "train":
@@ -221,6 +221,15 @@ class genericCNN():
                     reLoadFlag = True
                     print(data["hash"],inputs.shape)
                     self.valDF = self.valDF.drop(self.valDF[self.valDF["hash"]==data["hash"]].index)
+
+        for index, data in enumerate(self.testDataset):
+                inputs = data["image"]
+                labels = data["artist"]
+                if tuple(inputs.shape) != size:
+                    reLoadFlag = True
+                    print(data["hash"],inputs.shape)
+                    self.valDF = self.valDF.drop(self.valDF[self.valDF["hash"]==data["hash"]].index)  
+
         self.datasetChecked = True
         if reLoadFlag:
             self.loadData()
