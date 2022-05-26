@@ -328,11 +328,11 @@ class genericCNN():
                 if phase == "train":
                     epoch_loss = epoch_loss/self.reUseTrain
                     epoch_acc = epoch_acc/self.reUseTrain
-                    self.trainLoss.append(epoch_loss)
-                    self.trainAccu.append(epoch_acc)
+                    self.trainLoss.append(float(epoch_loss))
+                    self.trainAccu.append(float(epoch_acc))
                 elif phase == "val":
-                    self.valLoss.append(epoch_loss)
-                    self.valAccu.append(epoch_acc)
+                    self.valLoss.append(float(epoch_loss))
+                    self.valAccu.append(float(epoch_acc))
 
                 print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
 
