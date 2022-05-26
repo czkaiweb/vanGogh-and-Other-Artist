@@ -166,7 +166,7 @@ class genericCNN():
             labels = self.trainDF["Artist"].values
             weightList = [classWeight[i] for i in labels]
             weightList *= self.reUseTrain
-            print(weightList)
+            #print(weightList)
             self.trainSampler = WeightedRandomSampler(weightList, num_samples = len(weightList) , replacement=True)
             #self.valSampler = SubsetRandomSampler(val_indices)
             self.datasetSize["train"] = len(self.trainDF)
