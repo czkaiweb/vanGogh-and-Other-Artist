@@ -151,11 +151,23 @@ class genericCNN():
 
 
         if type(self.trainDF) != type(None):
-            self.trainDataset = CustomizedDataset(self.trainDF, self.dataPath, transform=self.trainTransform)
+            self.trainDataset = CustomizedDataset(self.trainDF, self.dataPath, transform=self.trainTransform, reUse = self.reUseTrain)
             self.valDataset = CustomizedDataset(self.valDF, self.dataPath, transform=self.valTransform)
             self.testDataset = CustomizedDataset(self.testDF, self.dataPath, transform= self.valTransform)
 
-            self.trainSampler = WeightedRandomSampler([1]*len(self.artistMap.keys()), num_samples = len(self.trainDF)*self.reUseTrain , replacement=True)
+            classCounter = []
+            for i in self.artistMap.keys():
+                classCounter.append(len(self.trainDF[self.trainDF["Artist"]==i]))
+            totalCounter = sum(classCounter)
+            classWeight = [1]*len(classCounter)
+            for i in self.artistMap.keys():
+                classWeight[i] = totalCounter/classCounter[i]
+
+            labels = self.trainDF["Artist"].values
+            weightList = [classWeight[i] for i in labels]
+            weightList *= self.reUseTrain
+            print(weightList)
+            self.trainSampler = WeightedRandomSampler(weightList, num_samples = len(weightList) , replacement=True)
             #self.valSampler = SubsetRandomSampler(val_indices)
             self.datasetSize["train"] = len(self.trainDF)
             self.datasetSize["val"] = len(self.valDF)
@@ -314,8 +326,10 @@ class genericCNN():
                 epoch_loss = running_loss / self.datasetSize[phase]
                 epoch_acc = running_corrects.double() / self.datasetSize[phase]
                 if phase == "train":
-                    self.trainLoss.append(epoch_loss/self.reUseTrain)
-                    self.trainAccu.append(epoch_acc/self.reUseTrain)
+                    epoch_loss = epoch_loss/self.reUseTrain
+                    epoch_acc = epoch_acc/self.reUseTrain
+                    self.trainLoss.append(epoch_loss)
+                    self.trainAccu.append(epoch_acc)
                 elif phase == "val":
                     self.valLoss.append(epoch_loss)
                     self.valAccu.append(epoch_acc)
