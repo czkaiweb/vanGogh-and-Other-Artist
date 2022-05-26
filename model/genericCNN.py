@@ -1,7 +1,8 @@
 from preprocessing.ImageTranform import *
 from preprocessing.CustomizedDataset import *
 from torch.utils.data import Dataset, DataLoader
-from torch.utils.data.sampler import SubsetRandomSampler
+from torch.utils.data.sampler import SubsetRandomSampler,WeightedRandomSampler
+from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms, utils
 
 import matplotlib.pyplot as plt
@@ -37,6 +38,8 @@ class genericCNN():
         self.Dataset = None
         self.valSize = 0.2
         self.testSize = 0.1
+        self.reUseTrain = 1
+        self.trainIndices = []
         self.trainDataset = None
         self.valDataset = None
         self.testDataset = None
@@ -45,8 +48,15 @@ class genericCNN():
         self.testDataLoader = None
         self.datasetSize = {}
 
+        self.trainLoss = []
+        self.trainAccu = []
+        self.valLoss = []
+        self.valAccu = []
+
         self.batch_size = 5
         self.device =  torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+        self.writer = SummaryWriter()
 
 
     def setTransformer(self, transform):
@@ -125,7 +135,8 @@ class genericCNN():
         if type(self.trainDF) != type(None):
             self.loadData()
 
-    def loadData(self):
+    def loadData(self, reUseTrain = 1):
+        self.reUseTrain = reUseTrain
         if self.UseNormalized == True and self.trainMean != None and self.trainStd != None:
             if type(self.trainTransform.transforms[-1]) != transforms.Normalize:
                 self.trainTransform.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
@@ -140,19 +151,31 @@ class genericCNN():
 
 
         if type(self.trainDF) != type(None):
-            self.trainDataset = CustomizedDataset(self.trainDF, self.dataPath, transform=self.trainTransform)
+            self.trainDataset = CustomizedDataset(self.trainDF, self.dataPath, transform=self.trainTransform, reUse = self.reUseTrain)
             self.valDataset = CustomizedDataset(self.valDF, self.dataPath, transform=self.valTransform)
             self.testDataset = CustomizedDataset(self.testDF, self.dataPath, transform= self.valTransform)
 
-            #self.trainSampler = SubsetRandomSampler(train_indices)
+            classCounter = []
+            for i in self.artistMap.keys():
+                classCounter.append(len(self.trainDF[self.trainDF["Artist"]==i]))
+            totalCounter = sum(classCounter)
+            classWeight = [1]*len(classCounter)
+            for i in self.artistMap.keys():
+                classWeight[i] = totalCounter/classCounter[i]
+
+            labels = self.trainDF["Artist"].values
+            weightList = [classWeight[i] for i in labels]
+            weightList *= self.reUseTrain
+            #print(weightList)
+            self.trainSampler = WeightedRandomSampler(weightList, num_samples = len(weightList) , replacement=True)
             #self.valSampler = SubsetRandomSampler(val_indices)
             self.datasetSize["train"] = len(self.trainDF)
             self.datasetSize["val"] = len(self.valDF)
             self.datasetSize["test"] = len(self.testDF)
         
-            self.trainDataLoader = DataLoader(self.trainDataset, batch_size=self.batch_size)
+            self.trainDataLoader = DataLoader(self.trainDataset, batch_size=self.batch_size, sampler = self.trainSampler)
             self.valDataLoader = DataLoader(self.valDataset, batch_size=self.batch_size)
-            self.testDataLoader = DataLoader(self.testDataset, batch_size=self.batch_size)
+            self.testDataLoader = DataLoader(self.testDataset, batch_size= 1)
 
         elif type(self.metaDF) != type(None):
             print("No data split assigned, only train dataset will be used")
@@ -236,10 +259,16 @@ class genericCNN():
 
         self.datasetChecked = True
         if reLoadFlag:
-            self.loadData()
+            self.loadData(reUseTrain = self.reUseTrain)
 
 
     def train_model(self, criterion, optimizer, scheduler, num_epochs=25):
+
+        self.trainLoss = []
+        self.trainAccu = []
+        self.valLoss = []
+        self.valAccu = []
+
         since = time.time()
 
         best_model_wts = copy.deepcopy(self.Model.state_dict())
@@ -296,6 +325,14 @@ class genericCNN():
 
                 epoch_loss = running_loss / self.datasetSize[phase]
                 epoch_acc = running_corrects.double() / self.datasetSize[phase]
+                if phase == "train":
+                    epoch_loss = epoch_loss/self.reUseTrain
+                    epoch_acc = epoch_acc/self.reUseTrain
+                    self.trainLoss.append(float(epoch_loss))
+                    self.trainAccu.append(float(epoch_acc))
+                elif phase == "val":
+                    self.valLoss.append(float(epoch_loss))
+                    self.valAccu.append(float(epoch_acc))
 
                 print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
 
@@ -344,6 +381,25 @@ class genericCNN():
                 plt.savefig(saveAs)
             except Exception as err:
                 print("Failed to save the evaluation file")  
+
+    def drawHistory(self):
+        plt.plot(self.trainAccu,'-o')
+        plt.plot(self.valAccu,'-o')
+        plt.xlabel('# of epoch')
+        plt.ylabel('Accuracy')
+        plt.legend(['Train','Valid'])
+        plt.title('Train vs Valid Accuracy')
+        plt.show()
+
+        plt.plot(self.trainLoss,'-o')
+        plt.plot(self.valLoss,'-o')
+        plt.xlabel('# of epoch')
+        plt.ylabel('Loss')
+        plt.legend(['Train','Valid'])
+        plt.title('Train vs Valid Loss')
+        plt.show()
+
+
 
 if __name__ == "__main__":
     myObj = genericCNN()
