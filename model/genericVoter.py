@@ -264,7 +264,8 @@ class genericVoter():
                     image = Image.open(img_name)
                     if image.mode == 'P':
                         image = image.convert('RGB')
-                    transformer = self.baggingTransformer[modelid]['val']
+                    #transformer = self.baggingTransformer[modelid]['val']
+                    transformer = copy.deepcopy(myVoter.baggingTransformer[modelid]['val'])
                     transformer.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
                     image = transformer(image)
 
@@ -303,7 +304,6 @@ class genericVoter():
                 scores = []
 
                 for train_index, test_index in kfold.split(X):
-                    print(train_index,test_index)
                     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
                     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
 
