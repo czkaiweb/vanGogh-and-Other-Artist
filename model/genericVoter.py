@@ -244,6 +244,9 @@ class genericVoter():
         self.baggingModels = models
         self.baggingTransformer = transformers
         self.baggingWeights = weights
+
+        for index,model in enumerate(self.baggingModels):
+            model.load_state_dict(torch.load(self.baggingWeights[index])
     
     def prepareInputForVoter(self):
 
@@ -253,7 +256,7 @@ class genericVoter():
         self.labels = []
         for modelid in range(len(self.baggingModels)):
             model = self.baggingModels[modelid]
-            model.load_state_dict(torch.load(self.baggingWeights[modelid],map_location=self.device),strict=False)
+            #model.load_state_dict(torch.load(self.baggingWeights[modelid],map_location=self.device),strict=False)
             #transformer = self.baggingTransformer[modelid]['val']
             transformer = copy.deepcopy(self.baggingTransformer[modelid]['val'])
             transformer.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
@@ -364,7 +367,7 @@ class genericVoter():
 
             for modelid in range(len(self.baggingModels)):
                 model = self.baggingModels[modelid]
-                model.load_state_dict(torch.load(self.baggingWeights[modelid],map_location=self.device),strict=False)
+                #model.load_state_dict(torch.load(self.baggingWeights[modelid],map_location=self.device),strict=False)
                 with torch.no_grad():
                     model.eval()
                     
