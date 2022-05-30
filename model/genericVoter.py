@@ -59,6 +59,7 @@ class genericVoter():
         self.trainAccu = []
         self.valLoss = []
         self.valAccu = []
+        self.skipNorm = False
 
         self.batch_size = 5
         self.device =  torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -248,8 +249,8 @@ class genericVoter():
         for index,model in enumerate(self.baggingModels):
             model.load_state_dict(torch.load(self.baggingWeights[index]))
     
-    def prepareInputForVoter(self):
-
+    def prepareInputForVoter(self, skipNorm = False):
+        self.skipNorm = skipNorm
         self.voter_input = []
         self.voter_label = []
         self.baseModelpreds = []
@@ -259,7 +260,8 @@ class genericVoter():
             #model.load_state_dict(torch.load(self.baggingWeights[modelid],map_location=self.device),strict=False)
             #transformer = self.baggingTransformer[modelid]['val']
             transformer = copy.deepcopy(self.baggingTransformer[modelid]['val'])
-            transformer.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
+            if not self.skipNorm:
+                transformer.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
             predMap = {}
             labelMap = {}
             with torch.no_grad():
@@ -373,7 +375,8 @@ class genericVoter():
                     
                     #transformer = self.baggingTransformer[modelid]['val']
                     transformer = copy.deepcopy(self.baggingTransformer[modelid]['val'])
-                    transformer.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
+                    if not self.skipNorm:
+                        transformer.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
                     imageTensor = transformer(image)
 
                     inputs = imageTensor.to(self.device)
