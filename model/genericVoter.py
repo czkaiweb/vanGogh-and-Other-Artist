@@ -249,7 +249,7 @@ class genericVoter():
         self.baggingWeights = weights
 
         for index,model in enumerate(self.baggingModels):
-            model.load_state_dict(torch.load(self.baggingWeights[index],map_location=self.device),strict=False))
+            model.load_state_dict(torch.load(self.baggingWeights[index],map_location=self.device),strict=False)
     
     def prepareInputForVoter(self, skipNorm = False):
         self.skipNorm = skipNorm
