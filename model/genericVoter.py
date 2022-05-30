@@ -282,13 +282,13 @@ class genericVoter():
 
         for modelId in range(len(self.baseModelpreds)):
             predicts = self.baseModelpreds[modelId]
-            labels = self.labels
+            labels = self.labels[modelId]
 
             nCorrect = 0
             nTotal = 0
             for key in predicts.keys():
                 if predicts[key] == labels[key]:
-                    nCorrent += 1
+                    nCorrect += 1
                 nTotal += 1
             print("Sanity check for model:{}, accuracy:{}".format(modelId,nCorrect/nTotal))
 
@@ -345,13 +345,17 @@ class genericVoter():
                     self.bestVoter = model
 
     
-    def evaluateVoter(self):
+    def evaluateVoter(self, num = -1):
         votingResults = []
         votingLabels = []
         self.votingInputs = []
-        for index in tqdm(self.testDF.index):
-            imgFile = self.testDF['hash'][index]
-            labal = self.testDF['Artist'][index]
+        if num > 0:
+            testDF = self.testDF.head(num)
+        else:
+            testDF = self.testDF
+        for index in tqdm(testDF.index):
+            imgFile = testDF['hash'][index]
+            labal = testDF['Artist'][index]
             img_name = os.path.join(self.dataPath,imgFile+'.jpg')
             image = Image.open(img_name)
             votingVector = []
@@ -364,7 +368,8 @@ class genericVoter():
                 with torch.no_grad():
                     model.eval()
                     
-                    transformer = self.baggingTransformer[modelid]['val']
+                    #transformer = self.baggingTransformer[modelid]['val']
+                    transformer = copy.deepcopy(self.baggingTransformer[modelid]['val'])
                     transformer.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
                     imageTensor = transformer(image)
 
