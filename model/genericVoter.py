@@ -265,7 +265,7 @@ class genericVoter():
                     if image.mode == 'P':
                         image = image.convert('RGB')
                     #transformer = self.baggingTransformer[modelid]['val']
-                    transformer = copy.deepcopy(myVoter.baggingTransformer[modelid]['val'])
+                    transformer = copy.deepcopy(self.baggingTransformer[modelid]['val'])
                     transformer.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
                     image = transformer(image)
 
