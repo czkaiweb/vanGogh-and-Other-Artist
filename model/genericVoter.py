@@ -246,7 +246,7 @@ class genericVoter():
         self.baggingWeights = weights
 
         for index,model in enumerate(self.baggingModels):
-            model.load_state_dict(torch.load(self.baggingWeights[index])
+            model.load_state_dict(torch.load(self.baggingWeights[index]))
     
     def prepareInputForVoter(self):
 
