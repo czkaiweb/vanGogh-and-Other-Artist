@@ -254,6 +254,9 @@ class genericVoter():
         for modelid in range(len(self.baggingModels)):
             model = self.baggingModels[modelid]
             model.load_state_dict(torch.load(self.baggingWeights[modelid],map_location=self.device),strict=False)
+            #transformer = self.baggingTransformer[modelid]['val']
+            transformer = copy.deepcopy(self.baggingTransformer[modelid]['val'])
+            transformer.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
             predMap = {}
             labelMap = {}
             with torch.no_grad():
@@ -265,9 +268,6 @@ class genericVoter():
                     image = Image.open(img_name)
                     if image.mode == 'P':
                         image = image.convert('RGB')
-                    #transformer = self.baggingTransformer[modelid]['val']
-                    transformer = copy.deepcopy(self.baggingTransformer[modelid]['val'])
-                    transformer.transforms.append(transforms.Normalize(mean = tuple(self.trainMean.tolist()), std=tuple(self.trainStd.tolist())) )
                     image = transformer(image)
 
                     inputs = image.to(self.device)
