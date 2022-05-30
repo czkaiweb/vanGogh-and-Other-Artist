@@ -387,7 +387,7 @@ class genericVoter():
                     _, preds = torch.max(outputs, 1)
 
                     votingVector += preds.tolist()
-                    self.votingInputs.append(votingVector)
+            self.votingInputs.append(votingVector)
 
             votingPredict = self.bestVoter.predict([votingVector])
 
