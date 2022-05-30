@@ -396,9 +396,14 @@ class genericVoter():
         accuracy = accuracy_score(self.votingLabels, self.votingResults)
         print("voter accuracy:", accuracy)
 
-        for i in range(len(self.votingInputs)):
-            accuracy = accuracy_score(np.array(self.votingInputs)[:,0], self.votingLabels)
+        for i in range(len(self.votingInputs[0])):
+            accuracy = accuracy_score(np.array(self.votingInputs)[:,i], self.votingLabels)
             print("base model: {} accu: {}".format(i,accuracy))
+
+        copyOfInput = copy.deepcopy(self.votingInputs)
+        mostFreqVoting = pd.DataFrame().mode(axis=0)[0]
+        accuracy = accuracy_score(np.array(mostFreqVoting.values, self.votingLabels)
+        print("hard voting accu: {}".format(i,accuracy))
 
 
 
