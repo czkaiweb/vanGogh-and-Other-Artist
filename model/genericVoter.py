@@ -83,6 +83,7 @@ class genericVoter():
         self.bestVoter = None
         self.leastCrossEntropy = None
         self.highaccuracy = None
+        self.votingInputs = []
     
     def setDataset(self, metadata, path="../data/imgs"):
         self.datasetChecked = False
@@ -279,6 +280,18 @@ class genericVoter():
             self.baseModelpreds.append(predMap)
             self.labels.append(labelMap)
 
+        for modelId in range(len(self.baseModelpreds)):
+            predicts = self.baseModelpreds[modelId]
+            labels = self.labels
+
+            nCorrect = 0
+            nTotal = 0
+            for key in predicts.keys():
+                if predicts[key] == labels[key]:
+                    nCorrent += 1
+                nTotal += 1
+            print("Sanity check for model:{}, accuracy:{}".format(modelId,nCorrect/nTotal))
+
         for index in self.valDF.index:
             hashId = self.valDF['hash'][index]
             votes = []
@@ -335,6 +348,7 @@ class genericVoter():
     def evaluateVoter(self):
         votingResults = []
         votingLabels = []
+        self.votingInputs = []
         for index in tqdm(self.testDF.index):
             imgFile = self.testDF['hash'][index]
             labal = self.testDF['Artist'][index]
@@ -360,6 +374,7 @@ class genericVoter():
                     _, preds = torch.max(outputs, 1)
 
                     votingVector += preds.tolist()
+                    self.votingInputs.append(votingVector)
 
             votingPredict = self.bestVoter.predict([votingVector])
 
@@ -367,11 +382,6 @@ class genericVoter():
             votingLabels.append(labal)
         accuracy = accuracy_score(votingLabels, votingResults)
         print("accuracy:", accuracy)
-
-
-                
-
-
 
 
 if __name__ == "__main__":
