@@ -60,6 +60,8 @@ class genericVoter():
         self.valLoss = []
         self.valAccu = []
         self.skipNorm = False
+        self.votingResults = []
+        self.votingLabels = []
 
         self.batch_size = 5
         self.device =  torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -351,8 +353,8 @@ class genericVoter():
 
     
     def evaluateVoter(self, num = -1):
-        votingResults = []
-        votingLabels = []
+        self.votingResults = []
+        self.votingLabels = []
         self.votingInputs = []
         if num > 0:
             testDF = self.testDF.head(num)
@@ -389,9 +391,12 @@ class genericVoter():
 
             votingPredict = self.bestVoter.predict([votingVector])
 
-            votingResults.append(votingPredict)
-            votingLabels.append(labal)
-        accuracy = accuracy_score(votingLabels, votingResults)
+            self.votingResults.append(votingPredict)
+            self.votingLabels.append(labal)
+        accuracy = accuracy_score(self.votingLabels, self.votingResults)
+
+        for i in len(self.votingInputs):
+            accuracy = accuracy_score(np.array(self.votingInputs)[:,0], self.votingLabels)
         print("accuracy:", accuracy)
 
 
