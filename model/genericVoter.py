@@ -394,10 +394,12 @@ class genericVoter():
             self.votingResults.append(votingPredict)
             self.votingLabels.append(labal)
         accuracy = accuracy_score(self.votingLabels, self.votingResults)
+        print("voter accuracy:", accuracy)
 
-        for i in len(self.votingInputs):
+        for i in range(len(self.votingInputs)):
             accuracy = accuracy_score(np.array(self.votingInputs)[:,0], self.votingLabels)
-        print("accuracy:", accuracy)
+            print("base model: {} accu: {}".format(i,accuracy))
+
 
 
 if __name__ == "__main__":
