@@ -403,7 +403,7 @@ class genericVoter():
         copyOfInput = copy.deepcopy(self.votingInputs)
         mostFreqVoting = pd.DataFrame(copyOfInput).mode(axis=1)[0]
         accuracy = accuracy_score(mostFreqVoting.values, self.votingLabels)
-        print("hard voting accu: {}".format(i,accuracy))
+        print("hard voting accu: {}".format(accuracy))
 
 
 
