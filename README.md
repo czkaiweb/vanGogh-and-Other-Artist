@@ -97,7 +97,7 @@ Then we can just train our network with your choise of the criterion, optimizer 
 ```
 myObj.train_model(criterion, optimizer_ft, exp_lr_scheduler, num_epochs=21)
 ```
-## Results
+## Test the Trained Model
 The confusion matrix can be obtained by
 ```
 myObj.evaluate()
