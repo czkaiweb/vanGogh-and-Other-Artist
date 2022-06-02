@@ -34,3 +34,16 @@ pip3 install --user kaggle
 Create Kaggle API token following:  https://www.kaggle.com/docs/api
 # General Usage
 This repository can easily used. We provide a colab template which people can use to train your dataset and choose your favoriate model. 
+
+To download the Von Gogh dataset used in this project
+```
+!kaggle datasets download -d ipythonx/van-gogh-paintings
+```
+To download the Monet dataset
+```
+!kaggle datasets download -d srrrrr/monet2photo
+```
+To download others paitings (da Vinci, Rembrandt, Picasso and Dali)
+```
+!kaggle datasets download -d czkaiweb/subwikiarts
+```
