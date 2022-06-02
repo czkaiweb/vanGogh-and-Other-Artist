@@ -33,8 +33,11 @@ pip3 install --user kaggle
 ```
 Create Kaggle API token following:  https://www.kaggle.com/docs/api
 # General Usage
+
 This repository can easily used. We provide a colab template which people can use to train your dataset and choose your favoriate model. 
 
+
+## Download data
 To download the Von Gogh dataset used in this project
 ```
 !kaggle datasets download -d ipythonx/van-gogh-paintings
@@ -47,3 +50,51 @@ To download others paitings (da Vinci, Rembrandt, Picasso and Dali)
 ```
 !kaggle datasets download -d czkaiweb/subwikiarts
 ```
+
+## Train your model
+The neural network is initialized by (Here we use the class genericCNN provided in genericCNN.py)
+```
+myObj = genericCNN()
+```
+To set up the data transformer, try
+```
+myTransform = ImageTransformer((224,224))
+myTransform.initTransform()
+transformer = myTransform.getTransformer()
+
+myObj.setTransformer(transformer)
+```
+Data setup (both meta data and the path)
+```
+myObj.setDataset("meta.csv",path = "imgs")
+```
+
+To choose the sizes of your training, validation and test sets (Here we use valitation set: 10%, test set: 70%)
+```
+myObj.splitData(val_size=0.1,test_size = 0.7,fraction = 1)
+```
+Data loading
+```
+myObj.loadData(reUseTrain=3)
+```
+
+The next step is to choose the model which you want to use. For example, if we use the resnet34 model
+```
+model_ft = models.resnet34(pretrained=True)
+
+num_ftrs = model_ft.fc.in_features
+model_ft.fc = nn.Linear(num_ftrs, 6)
+model_ft = model_ft.to(myObj.device)
+
+myObj.setModel(model = model_ft,modeltag="resnet34mod")
+```
+Then we can just train our network with your choise of the criterion, optimizer and schdeduler
+```
+myObj.train_model(criterion, optimizer_ft, exp_lr_scheduler, num_epochs=21)
+```
+## Results
+The confusion matrix can be obtained by
+```
+myObj.evaluate()
+```
+For resnet34, we get
