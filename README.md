@@ -32,4 +32,5 @@ Kaggle API for dataset download:
 pip3 install --user kaggle
 ```
 Create Kaggle API token following:  https://www.kaggle.com/docs/api
-# 
+# General Usage
+This repository can easily used. We provide a colab template which people can use to train your dataset and choose your favoriate model. 
