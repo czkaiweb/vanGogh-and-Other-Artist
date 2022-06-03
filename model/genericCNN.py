@@ -128,6 +128,7 @@ class genericCNN():
         # std = sqrt(E[X^2] - (E[X])^2)
         self.trainStd = (channels_squared_sum / num_batches - self.trainMean ** 2) ** 0.5
         self.StatGot = True
+        self.loadData(self.reUseTrain)
 
     def UseNormalizedTransformer(self, normalize = True):
         self.UseNormalized = normalize
