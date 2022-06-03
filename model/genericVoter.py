@@ -413,6 +413,13 @@ class genericVoter():
         accuracy = accuracy_score(mostFreqVoting.values, self.votingLabels)
         print("hard voting accu: {}".format(accuracy))
 
+        cfMatrix = confusion_matrix(mostFreqVoting.values, self.votingResults, normalize = 'true')
+        dfcfMatrix = pd.DataFrame(cfMatrix, index=artistList,
+                         columns=artistList)
+        plt.figure(figsize=(12, 7))    
+        sns.heatmap(dfcfMatrix, annot=True).get_figure()
+        plt.savefig("HardVotingConfusionMatrix.jpg")
+
 
 
 if __name__ == "__main__":
