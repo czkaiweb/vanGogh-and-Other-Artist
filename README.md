@@ -124,6 +124,21 @@ torch.save(myObj.Model.state_dict(), 'model_weights.pth')
 from google.colab import files
 files.download("model_weights.pth")
 ```
+
+## Voter
+
+After training several different models, we can combine these results into a voter to get better prediction. The comparison between the base models and the voter is shown as following
+![accuracy_scores](https://github.com/czkaiweb/vanGogh-and-Other-Artist/blob/main/accuracy_scores.png)
+
+It can be seen that the prediction is slightly improved and the hard voting gives the best result.
+
+The confusion matrix of the voter
+
+![voter_confusionmatrix](https://github.com/czkaiweb/vanGogh-and-Other-Artist/blob/main/voter_confusionmatrix.png)
+
+The confusion matrix of hard voting
+
+![hardvoting_confusionmatrix](https://github.com/czkaiweb/vanGogh-and-Other-Artist/blob/main/hardvoting_confusionmatrix.png)
 # Applications of Our Training Results
 
 We build an artist classifier and a style transfer based on our trained model. 
