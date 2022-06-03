@@ -139,7 +139,7 @@ A paiting of Monet is used to test the classifier and it gives great result!
 
 Another interesting application of our trained model is the style transfer, which makes your picture has similar style as the paintings of the artists. People can use this link https://huggingface.co/spaces/breynolds1247/StarryNight_StyleTransfer.
 
-Here we use a picture of the CERN collider. By using the style transfer, now it has Picasso's painting style!
+Here we use a picture of the CMS detector. By using the style transfer, now it has Picasso's painting style!
 
 ![style_transfer](https://github.com/czkaiweb/vanGogh-and-Other-Artist/blob/main/style_transfer.png)
 
