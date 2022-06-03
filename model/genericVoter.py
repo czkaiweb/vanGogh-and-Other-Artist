@@ -410,8 +410,15 @@ class genericVoter():
 
         copyOfInput = copy.deepcopy(self.votingInputs)
         mostFreqVoting = pd.DataFrame(copyOfInput).mode(axis=1)[0]
-        accuracy = accuracy_score(mostFreqVoting.values, self.votingLabels)
+        accuracy = accuracy_score(mostFreqVoting.values,self.votingLabels)
         print("hard voting accu: {}".format(accuracy))
+
+        cfMatrix = confusion_matrix(self.votingLabels, mostFreqVoting.values, normalize = 'true')
+        dfcfMatrix = pd.DataFrame(cfMatrix, index=artistList,
+                         columns=artistList)
+        plt.figure(figsize=(12, 7))    
+        sns.heatmap(dfcfMatrix, annot=True).get_figure()
+        plt.savefig("HardVotingConfusionMatrix.jpg")
 
 
 
