@@ -8,7 +8,7 @@ Team members:
 - Bryan Reynolds
 - Kai Wei
 # Project Descriptionton
-When we see a paiting, we may not be able to tell its artist immediately. If we were in an art exhibition, then the labels can tell us it. But it may be not very convenient to go to exhibitions frequently to find the artist of a painting which we encounter in life. It will be nice if we can have an app to do this quickly. The neural network provides us an opportunity to fix this problem. Basically, a classifier is consisted of multiple layers of nodes with parameters (weights) trained by an existing dataset. When the input (a paiting in our problem) is determined, it automatically generates an output as the prediction of artist of the painting. Here we have a dataset of paiting of six artists: Monet, Van Gogh, da Vinci, Rembrandt, Picasso and Dali and use this dataset to train several different neural network models. Our testing resutls show that our models can give very good predictions of artist of paintings. A website is established to deploy our trained model. Also, a style transfer is added based on the trained model [StyleTransfer](https://huggingface.co/spaces/breynolds1247/StarryNight_StyleTransfer).
+When we see a paiting, we may not be able to tell its artist immediately. If we were in an art exhibition, then the labels can tell us it. But it may be not very convenient to go to exhibitions frequently to find the artist of a painting which we encounter in life. It will be nice if we can have an app to do this quickly. The neural network provides us an opportunity to fix this problem. Basically, a classifier is consisted of multiple layers of nodes with parameters (weights) trained by an existing dataset. When the input (a paiting in our problem) is determined, it automatically generates an output as the prediction of artist of the painting. Here we have a dataset of paiting of six artists: Monet, Van Gogh, da Vinci, Rembrandt, Picasso and Dali and use this dataset to train several different neural network models. Our testing resutls show that our models can give very good predictions of artist of paintings. A website is established to deploy our classifier [ArtitstClassifier](https://huggingface.co/spaces/czkaiweb/StarryNight). Also, a style transfer is added based on the trained model [StyleTransfer](https://huggingface.co/spaces/breynolds1247/StarryNight_StyleTransfer).
 # Dependencies
 Conda environment:
 ```
@@ -124,3 +124,25 @@ torch.save(myObj.Model.state_dict(), 'model_weights.pth')
 from google.colab import files
 files.download("model_weights.pth")
 ```
+# Applications of Our Training Results
+
+We build an artist classifier and a style transfer based on our trained model. 
+## Artist Classifier
+For the artist classifier, people can use the link https://huggingface.co/spaces/czkaiweb/StarryNight to check the artist of a paiting. 
+
+For example
+![artist_check](https://github.com/czkaiweb/vanGogh-and-Other-Artist/blob/main/artist_check.png)
+
+A paiting of Monet is used to test the classifier and it gives great result!
+
+## Style Transfer
+
+Another interesting application of our trained model is the style transfer, which makes your picture has similar style as the paintings of the artists. People can use this link https://huggingface.co/spaces/breynolds1247/StarryNight_StyleTransfer.
+
+Here we use a picture of the CERN collider. By using the style transfer, now it has Picasso's painting style!
+
+![style_transfer](https://github.com/czkaiweb/vanGogh-and-Other-Artist/blob/main/style_transfer.png)
+
+If we then upload this figure to our classifier, it is recognized as Picasso's painting!
+
+![style_transfer_check](https://github.com/czkaiweb/vanGogh-and-Other-Artist/blob/main/style_transfer_check.png)
