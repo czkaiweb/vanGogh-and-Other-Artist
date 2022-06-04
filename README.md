@@ -127,7 +127,7 @@ files.download("model_weights.pth")
 
 ## Voter
 
-After training several different models, we can combine these results into a voter to get better prediction. The comparison between the base models and the voter is shown as following
+After training several different models, we can combine these results into a voter to get better prediction. The comparison between the base models (0: VGG, 1: EfficientNet, 2: MobileNet, 3:ResNet34, 4: ConvNext), the voter (like random forests) and hard voting is shown as following
 ![accuracy_scores](https://github.com/czkaiweb/vanGogh-and-Other-Artist/blob/main/accuracy_scores.png)
 
 It can be seen that the prediction is slightly improved and the hard voting gives the best result.
